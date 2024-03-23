@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Animacja AK</title>
+</head>
+<body>
+    <label for="automatonNumber">Numer automatu:</label>
+    <input type="number" id="automatonNumber" placeholder="Wpisz numer automatu" value="0" min="0" oninput="validity.valid||(value='');">
+    <br>
+    <button id="startButton">Start</button>
+    <button id="stopButton">Stop</button>
+    <button id="resumeButton">Resume</button>
+    <button id="startRandomButton">Random</button>
+    <canvas id="chessboardCanvas" width="1200" height="600"></canvas>
+    <script src="animation.js"></script>
+</body>
+</html>
