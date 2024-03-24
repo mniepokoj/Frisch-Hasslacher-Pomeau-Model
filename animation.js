@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var neighbourValues = 2;
     // Rozmiary szachownicy
-    var rows = 40;
-    var columns = 80;
+    var rows = 25;
+    var columns = 60;
 
     var gridLineWidth = 1;
     var gridLineColor = 'rgba(20, 20, 20, 255)';
@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
     
             ctx.fillStyle = '#000'; // Kolor tekstu
-            ctx.font = '18px "Times New Roman", Times, serif';
+            ctx.font = '16px "Times New Roman", Times, serif';
             ctx.textBaseline = 'middle'; // Wyrównanie tekstu do środka
             ctx.fontSmooth = 'never'; // Wyłączenie antyaliasingu dla tekstu
             ctx.fillText(aliveCount, (columns+1) * cellSize.x, (i + 1) * cellSize.y - 7);
@@ -237,11 +237,33 @@ document.addEventListener('DOMContentLoaded', function () {
         return value >= min && value <= max;
     }
     
+    function getInputNumber()
+    {
+        var modeSelect = document.getElementById("modeSelect");
+        var selectedMode = modeSelect.value;
+        var number = 0;
+
+        if(selectedMode == "mode1")
+        {
+            number = document.getElementById('automatonNumber').value;
+        }
+        else
+        {
+            var inputs = document.querySelectorAll('.customInput');
+
+            number = 0;
+            for(var i = 0; i < 32; i++)
+            {
+                number += inputs[i].value * Math.pow(2, i);
+            }
+            console.log(number);
+        }
+        return number;
+    }
 
     function handleStart() 
     {
-        const number = document.getElementById('automatonNumber').value;
-        console.log(number);
+        const number = getInputNumber();
         if(!isValidNumber(number))
         {
             console.log("Nope" + number);
@@ -278,7 +300,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function handleStartRandom()
     {
-        document.getElementById('automatonNumber').value = generateRandomNumber32();
+        var modeSelect = document.getElementById("modeSelect");
+        var selectedMode = modeSelect.value;
+        if(selectedMode == "mode1")
+        {
+            document.getElementById('automatonNumber').value = generateRandomNumber32();
+        }
+        else
+        {
+            var inputs = document.querySelectorAll('.customInput');
+
+            for (var i = 0; i < inputs.length; i++) 
+            {
+                inputs[i].value = Math.round(Math.random()); // Ustaw nową wartość dla każdego elementu .customInput
+            }
+        }
         handleStart();
     }
 

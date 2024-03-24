@@ -7,14 +7,27 @@
     <title>Animacja AK</title>
 </head>
 <body>
-    <label for="automatonNumber">Numer automatu:</label>
-    <input type="number" id="automatonNumber" placeholder="Wpisz numer automatu" value="0" min="0" oninput="validity.valid||(value='');">
-    <br>
+
+    <select id="modeSelect">
+        <option value="mode1">Numer automatu</option>
+        <option value="mode2">Zbior regul</option>
+    </select>
+    
+    <div id="mode1">
+        <label for="automatonNumber">Numer automatu:</label>
+        <input type="number" id="automatonNumber" placeholder="Wpisz numer automatu" value="0" min="0" oninput="validity.valid||(value='');">
+    </div>
+
+    <div id="mode2" style="display: none;">
+        <div id="inputRows">
+        </div>
+    </div>
     <button id="startButton">Start</button>
     <button id="stopButton">Stop</button>
     <button id="resumeButton">Resume</button>
     <button id="startRandomButton">Random</button>
-    <canvas id="chessboardCanvas" width="1200" height="600"></canvas>
+    <canvas id="chessboardCanvas" width="1000" height="400"></canvas>
     <script src="animation.js"></script>
+    <script src="inputs.js"></script>
 </body>
 </html>
