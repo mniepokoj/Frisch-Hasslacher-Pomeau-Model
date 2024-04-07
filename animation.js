@@ -4,13 +4,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var neighbourValues = 2;
     // Rozmiary szachownicy
-    var rows = 25;
-    var columns = 60;
+    var rows = 40;
+    var columns = 100;
 
     var gridLineWidth = 1;
-    var gridLineColor = 'rgba(20, 20, 20, 255)';
+    var gridLineColor = 'rgba(0, 0, 0, 255)';
 
-    var timeToNextFrame = 250;
+    var timeToNextFrame = 2;
 
     var cellSize = {
         x: canvas.width / (columns+4),
@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
     
             ctx.fillStyle = '#000'; // Kolor tekstu
-            ctx.font = '16px "Times New Roman", Times, serif';
+            ctx.font = '12px "Times New Roman", Times, serif';
             ctx.textBaseline = 'middle'; // Wyrównanie tekstu do środka
             ctx.fontSmooth = 'never'; // Wyłączenie antyaliasingu dla tekstu
             ctx.fillText(aliveCount, (columns+1) * cellSize.x, (i + 1) * cellSize.y - 7);
