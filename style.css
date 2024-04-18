@@ -1,22 +1,22 @@
 html, body {
-    width:  100%;
+    width: 100%;
     height: 100%;
     margin: 0;
-  }
-  
+    padding: 0;
+    overflow: hidden; /* Dodajemy overflow: hidden, aby zapobiec pojawianiu się pasków przewijania */
+}
 
 body {
     font-family: Arial, sans-serif;
     background-color: #f0f0f0;
-    margin: 0;
     padding: 0;
-    line-height: 2;
     text-align: center;
 }
 
 #container {
     width: 80%;
     margin: 20px auto;
+    overflow: hidden;
 }
 
 #automatonNumberLabel {
@@ -45,7 +45,9 @@ button:hover {
 
 canvas {
     display: block;
-    margin: 20px auto 0;
+    margin: 0 auto; /* Usuwamy górny margines, aby canvas był bliżej górnej krawędzi */
+    max-width: 100%;
+    max-height: calc(100vh - 150px); /* Ograniczamy maksymalną wysokość canvasa, uwzględniając wysokość innych elementów na stronie */
 }
 
 .customInput {
@@ -61,7 +63,6 @@ canvas {
     font-size: 8px;
 }
 
-.inputRow
-{
+.inputRow {
     line-height: 0.8;
 }

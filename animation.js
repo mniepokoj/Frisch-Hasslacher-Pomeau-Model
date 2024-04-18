@@ -5,13 +5,13 @@ document.addEventListener('DOMContentLoaded', function () {
     ctx.canvas.height = window.innerHeight;
     var neighbourValues = 2;
     
-    var rows = 140;
-    var columns = 300;
+    var rows = 70;
+    var columns = 120;
 
     var gridLineWidth = 0;
     var gridLineColor = 'rgba(20, 20, 20, 255)';
 
-    var timeToNextFrame = 10;
+    var timeToNextFrame = 1;
 
     var cellSize = {
         x: canvas.width / (columns+4),

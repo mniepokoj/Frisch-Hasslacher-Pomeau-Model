@@ -1,1 +1,6 @@
 1992153157
+
+
+
+4029279172 - interesujący automat - po pewnym czasie zawsze zamienia się w linie proste - automat drugiego roczaju 
+2713117857 - interesujący automat - w zależności od stanu wejściowego, automat może albo przyjąć linie, albo zmieżać do nieskończoności
