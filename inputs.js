@@ -33,12 +33,10 @@ document.addEventListener("DOMContentLoaded", function() {
                 var inputDescription = document.createElement("span");
                 inputDescription.textContent = inputValue + ": ";
                 
-                // Apply styling to the description span
                 inputDescription.style.display = "inline-block";
                 inputDescription.style.width = "50px";
                 inputDescription.classList.add("customInputDescription");
 
-                // Create input element
                 var input = document.createElement("input");
                 input.type = "number";
                 input.value = 0;
@@ -56,3 +54,9 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 });
+
+//FHP (hydrostatyka)
+//GameOfLife
+//Tree
+//Model sznajd
+//ruch uliczny

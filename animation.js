@@ -1,16 +1,17 @@
 document.addEventListener('DOMContentLoaded', function () {
     var canvas = document.getElementById('chessboardCanvas');
     var ctx = canvas.getContext('2d');
-
+    ctx.canvas.width  = window.innerWidth;
+    ctx.canvas.height = window.innerHeight;
     var neighbourValues = 2;
-    // Rozmiary szachownicy
-    var rows = 40;
-    var columns = 100;
+    
+    var rows = 140;
+    var columns = 300;
 
-    var gridLineWidth = 1;
-    var gridLineColor = 'rgba(0, 0, 0, 255)';
+    var gridLineWidth = 0;
+    var gridLineColor = 'rgba(20, 20, 20, 255)';
 
-    var timeToNextFrame = 2;
+    var timeToNextFrame = 10;
 
     var cellSize = {
         x: canvas.width / (columns+4),
@@ -58,6 +59,8 @@ document.addEventListener('DOMContentLoaded', function () {
         for(var i = 0; i < columns; i++)
         {
             board[boardCurrentIndex][i] = Math.round(Math.random());
+            //board[boardCurrentIndex][i] = 0;
+            //board[boardCurrentIndex][columns/2] = 1;
         } 
     }
 
@@ -68,44 +71,24 @@ document.addEventListener('DOMContentLoaded', function () {
             var bit = (number >> i) & 1;
             binaryArray.push(bit);
         }
-        return binaryArray;
+        return binaryArray.reverse();
     }
 
     function initRegulesMap(number)
     {
         binary = int32ToBinaryArray(number)
-        regulesMap = []
-        for(i0 = 0; i0 < 2; i0++)
-        {
-            regulesMap[i0] = [];
-            for(i1 = 0; i1 < 2; i1++)
-            {
-                regulesMap[i0][i1] = [];
-                for(i2 = 0; i2 < 2; i2++)
-                {
-                    regulesMap[i0][i1][i2] = [];
-                    for(i3 = 0; i3 < 2; i3++)
-                    {
-                        regulesMap[i0][i1][i2][i3] = [];
-                        for(i4 = 0; i4 < 2; i4++)
-                        {
-                            binary_index = i0 * 16 + i1 * 8 + i2 * 4 + i3 * 2 + i4;
-                            regulesMap[i0][i1][i2][i3][i4] = binary[binary_index];
-                        }
-                    }
-                }   
-            }
-        }
+        regulesMap = binary;
     }
 
     function getOutput(input)
     {
-        let reguleValue = regulesMap;
-        for(i = 0; i < input.length; i++)
+        index = 0;
+        for(var i = 0; i <= neighbourValues *2; i++)
         {
-            reguleValue = reguleValue[input[i]];
+            index += input[i] * Math.pow(2, i);
         }
-        return reguleValue;
+        console.log(input, index);
+        return regulesMap[index];
     }
 
     function getElementPeriodically(index)
@@ -143,13 +126,12 @@ document.addEventListener('DOMContentLoaded', function () {
             {
                 akInput[j] = board[boardCurrentIndex-1][getElementPeriodically(i+j-neighbourValues)];
             }
-            board[boardCurrentIndex][i] = getOutput(akInput);
+            board[boardCurrentIndex][i] = getOutput(akInput.reverse());
         }
     }
 
     function drawChessboard() 
     {
-        //draw cell state
         for (var i = 0; i < rows; i++) 
         {
             for (var j = 0; j < columns; j++) 
@@ -167,16 +149,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
     
-            ctx.fillStyle = '#000'; // Kolor tekstu
-            ctx.font = '12px "Times New Roman", Times, serif';
-            ctx.textBaseline = 'middle'; // Wyrównanie tekstu do środka
-            ctx.fontSmooth = 'never'; // Wyłączenie antyaliasingu dla tekstu
+            ctx.fillStyle = '#000';
+            ctx.font = '9px "Times New Roman", Times, serif';
+            ctx.textBaseline = 'middle';
+            ctx.fontSmooth = 'never';
             ctx.fillText(aliveCount, (columns+1) * cellSize.x, (i + 1) * cellSize.y - 7);
         }
     }
 
     function drawGridLines() 
     {
+        if(!gridLineWidth)
+            return;
         ctx.strokeStyle = gridLineColor;
         ctx.lineWidth = gridLineWidth;
 

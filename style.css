@@ -1,15 +1,22 @@
+html, body {
+    width:  100%;
+    height: 100%;
+    margin: 0;
+  }
+  
+
 body {
     font-family: Arial, sans-serif;
     background-color: #f0f0f0;
     margin: 0;
     padding: 0;
-    line-height: 2; /* większy odstęp między liniami */
+    line-height: 2;
     text-align: center;
 }
 
 #container {
     width: 80%;
-    margin: 20px auto; /* lekko oddalony od góry */
+    margin: 20px auto;
 }
 
 #automatonNumberLabel {
@@ -38,7 +45,7 @@ button:hover {
 
 canvas {
     display: block;
-    margin: 20px auto 0; /* ustawienie marginesu od góry */
+    margin: 20px auto 0;
 }
 
 .customInput {
@@ -46,8 +53,8 @@ canvas {
     border: 1px solid #ccc;
     padding: 5px;
     margin-right: 10px;
-    font-size: 8px; /* Przykładowy rozmiar czcionki */
-    line-height: 0.8; /* Mniejszy odstęp między liniami */
+    font-size: 8px;
+    line-height: 0.8;
 }
 
 .customInputDescription {
@@ -56,5 +63,5 @@ canvas {
 
 .inputRow
 {
-    line-height: 0.8; /* Mniejszy odstęp między liniami */
+    line-height: 0.8;
 }
