@@ -16,7 +16,6 @@ var orientation = layout_flat;
 var layout = new Layout(orientation, cellSize, new Point(width / 2, height / 2));
 
 function initBoard() {    
-    // Wyznaczanie granic prostokąta
     let margin = 50;
     let leftBoundary = margin;
     let rightBoundary = width - margin;
@@ -31,7 +30,6 @@ function initBoard() {
             let hex = new Hex(q, r, s);
             let point = hex_to_pixel(layout, hex);
 
-            // Sprawdzenie czy heksagon mieści się w granicach prostokąta
             if (point.x >= leftBoundary && point.x <= rightBoundary && point.y >= topBoundary && point.y <= bottomBoundary) {
                 hexBoard.push(hex);
             }
