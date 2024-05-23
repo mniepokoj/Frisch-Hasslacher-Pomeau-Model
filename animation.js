@@ -1,48 +1,51 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    var canvas = document.getElementById('chessboardCanvas');
-    var ctx = canvas.getContext('2d');
-    ctx.canvas.width  = window.innerWidth;
-    ctx.canvas.height = window.innerHeight;
-    
-    var rows = 70;
-    var columns = 120;
+var canvas = document.getElementById('chessboardCanvas');
+var ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+var width = canvas.width;
+var height = canvas.height;
 
-    var r_size = 5;
-    var q_size = 5;
-    var w_size = 5;
+var boardSize = 20;
+var cellSize = new Point(width / (boardSize * 2), height / (boardSize * 2));
 
-    var cellSize = {
-        x: canvas.width / (columns+4),
-        y: canvas.height / rows
-    };
+var hexBoard = [];
+var orientation = layout_flat;
+var layout = new Layout(orientation, cellSize, new Point(width / 2, height / 2));
 
-    hexBoard = [];
-    layout = Orientation(3.0 / 2.0, 0.0, Math.sqrt(3.0) / 2.0, Math.sqrt(3.0), 2.0 / 3.0, 0.0, -1.0 / 3.0, Math.sqrt(3.0) / 3.0, 0.0);
+function initBoard() {    
+    // Wyznaczanie granic prostokąta
+    let margin = 50;
+    let leftBoundary = margin;
+    let rightBoundary = width - margin;
+    let topBoundary = margin;
+    let bottomBoundary = height - margin;
 
-    function initBoard()
-    {    
-        for( r = 0; r < r_size; r++)
-        {
-            for(q = 0; q < q_size; q++ )
-            {
-                for(w = 0; w < w_size; w++)
-                {
-                    if(r+q+w == 0)
-                    hexBoard.push(Hex(q, w, r));
-                }
+    for (let r = -boardSize; r <= boardSize; r++) 
+    {
+        for (let q = -boardSize; q <= boardSize; q++) {
+            let s = -r - q;
+
+            let hex = new Hex(q, r, s);
+            let point = hex_to_pixel(layout, hex);
+
+            // Sprawdzenie czy heksagon mieści się w granicach prostokąta
+            if (point.x >= leftBoundary && point.x <= rightBoundary && point.y >= topBoundary && point.y <= bottomBoundary) {
+                hexBoard.push(hex);
             }
         }
     }
+}
 
     function drawChessboard() 
     {
-        for (const hexElement of hexBoard)
-        {
-            const point = hex_to_pixel((layout, hexElement), cellSize.x, cellSize.y);
-            ctx.fillStyle = 'rgba(255, 255, 255, 255)';
-            ctx.fillRect(point.x - 10, point.y - 10, point.x + 10, point.y + 10);
+        for (const hexElement of hexBoard) {
+            let point = hex_to_pixel(layout, hexElement);
+            ctx.fillStyle = 'rgba(128, 128, 28, 255)';
+            let pointSize = 20;
+            ctx.fillRect(point.x - pointSize / 2, point.y - pointSize / 2, pointSize, pointSize);
         }
     }
 
