@@ -7,10 +7,8 @@ function Point(x, y) {
     return {x: x, y: y};
 }
 
-
-
-
-function Hex(q, r, s) {
+function Hex(q, r, s) 
+{
     if (Math.round(q + r + s) !== 0) throw "q + r + s must be 0";
     return {q: q, r: r, s: s};
 }
@@ -65,6 +63,12 @@ function hex_length(hex)
 function hex_distance(a, b)
 {
     return hex_length(hex_subtract(a, b));
+}
+
+function hex_length_zero(a, b)
+{
+    const eps = 0.01;
+    return (hex_length(hex_add(a, b)) < eps);
 }
 
 function hex_round(h)
