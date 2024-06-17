@@ -1,28 +1,27 @@
 
 document.addEventListener('DOMContentLoaded', function () {
+    var canvas = document.getElementById('chessboardCanvas');
+    var ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    var width = canvas.width;
+    var height = canvas.height;
 
-var canvas = document.getElementById('chessboardCanvas');
-var ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-var width = canvas.width;
-var height = canvas.height;
+    var particleMargin = height * 0.1;
+    var boardSize = 50;
+    var cellSize = new Point((width - particleMargin) / (boardSize), (height - particleMargin) / (boardSize));
+    var paricleBoundaryPosition = (width - particleMargin * 2) * 0.7 + particleMargin - cellSize.x;
+    var particleDensityFactor = 0.2;
 
-var boardSize = 50;
-var cellSize = new Point(width / (boardSize * 2), height / (boardSize * 2));
-var particleMargin = 200;
-var particleDensityFactor = 0.;
+    var timeToNextFrame = 100;
+    var lastFrameTime = Date.now() - timeToNextFrame;
 
-var timeToNextFrame = 2000;
-var lastFrameTime = Date.now() - timeToNextFrame;
+    var boardTiles = [];
 
-var boardTiles = [];
+    var orientation = layout_flat;
+    var layout = new Layout(orientation, cellSize, new Point(0, 0));
 
-var orientation = layout_flat;
-var layout = new Layout(orientation, cellSize, new Point(width / 2, height / 2));
-
-    class Element
-    {
+    class Element {
         static s_empty = "empty";
         static s_particle = "particle";
         static s_wall = "wall";
@@ -35,16 +34,14 @@ var layout = new Layout(orientation, cellSize, new Point(width / 2, height / 2))
         id = 0;
         sort_order = 0;
 
-        constructor(type, coord, speed) 
-        {
+        constructor(type, coord, speed) {
             this.type = type;
             this.coord = coord;
             this.speed = speed;
             this.id = Element.s_id;
             Element.s_id += 1;
 
-            switch (type) 
-            {
+            switch (type) {
                 case Element.s_wall:
                     this.sortOrder = 3;
                     break;
@@ -66,24 +63,20 @@ var layout = new Layout(orientation, cellSize, new Point(width / 2, height / 2))
         return Math.floor(Math.random() * max);
     }
 
-    function getRandomSpeed()
-    {
+    function getRandomSpeed() {
         let rn1 = getRandomInt(3);
         let rn2 = getRandomInt(2);
         let speedDirection = rn2 * 2 - 1;
         let letter1, letter2;
-        if(rn1 == 0)
-        {
+        if (rn1 == 0) {
             letter1 = "q";
             letter2 = "s";
         }
-        else if(rn1 == 1)
-        {
+        else if (rn1 == 1) {
             letter1 = "q";
             letter2 = "r";
         }
-        else if(rn1 == 2)
-        {
+        else if (rn1 == 2) {
             letter1 = "s";
             letter2 = "r";
         }
@@ -95,94 +88,135 @@ var layout = new Layout(orientation, cellSize, new Point(width / 2, height / 2))
     }
 
 
-    function getEmptyBoardTiles()
-    {
+    function getEmptyBoardTiles() {
         let arr = [];
-        size = boardSize * 2 + 1;
+        size = boardSize * 4 + 1;
         arr = Array(size);
-        for(let r = 0; r < size; r++)
+        for (let r = 0; r < size; r++) 
         {
             arr[r] = Array(size);
-            for(let q = 0; q < size; q++)
-            {
+            for (let q = 0; q < size; q++) {
                 arr[r][q] = [];
             }
         }
         return arr;
     }
 
-    function getBoardTile(board, r, q)
+    function getBoardTile(board, r, q) 
     {
-        return board[r+boardSize][q+boardSize];
+        return board[r + boardSize * 2][q + boardSize * 2];
     }
 
-    function initElements()
-    {
-        let leftBoundary = particleMargin;
-        let rightBoundary = width - particleMargin;
-        let topBoundary = particleMargin;
-        let bottomBoundary = height - particleMargin;
+    function isInAllowedArea(h) {
+        const left = particleMargin + cellSize.x;
+        const right = paricleBoundaryPosition;
 
-        boardTiles = getEmptyBoardTiles();
-        
+        const top = particleMargin;
+        const bottom = height - particleMargin - cellSize.y;
+
+        pos = hex_to_pixel(layout, h);
+        return pos.x > left && pos.x < right && pos.y > top && pos.y < bottom;
+    }
+
+    function isInDrawableArea(h) 
+    {
+        let pos = hex_to_pixel(layout, h);
+        const left = particleMargin;
+        const right = width - particleMargin;
+
+        const top = particleMargin;
+        const bottom = height - particleMargin;
+
+        return pos.x > left && pos.x < right && pos.y > top && pos.y < bottom;
+    }
+
+    function initParticle() {
         for (let r = -boardSize; r <= boardSize; r++) 
         {
             for (let q = -boardSize; q <= boardSize; q++) 
             {
                 let s = -r - q;
                 let hex = new Hex(q, r, s);
-                let point = hex_to_pixel(layout, hex);
-                if (point.x >= leftBoundary && point.x <= rightBoundary && point.y >= topBoundary && point.y <= bottomBoundary) 
-                {
-                    let random = Math.random();
+
+                if (Math.random() < particleDensityFactor && isInAllowedArea(hex)) 
+                    {
                     let type = Element.s_particle;
                     let speed = getRandomSpeed();
-                    if(random < particleDensityFactor)
-                    {
+                    if (getBoardTile(boardTiles, r, q).length == 0)
                         getBoardTile(boardTiles, r, q).push(new Element(type, hex, speed));
-                    }
-                }
-                else
-                {
-                    let type = Element.s_wall;
-                    let speed = Hex(0 ,0, 0);
-                    getBoardTile(boardTiles, r, q).push(new Element(type, hex, speed));
                 }
             }
         }
-        getBoardTile(boardTiles, 2, 0).push(new Element(Element.s_particle, Hex(3,0 ,-3), Hex(-1,0, 1)));
-        getBoardTile(boardTiles, 0, 0).push(new Element(Element.s_particle, Hex(-3,0, 3), Hex(1,0, -1)));
-        getBoardTile(boardTiles, 0, 3).push(new Element(Element.s_particle, Hex(0,3, -3), Hex(0,-1, 1)));
     }
 
-    function initBoard() 
-    {    
+    function initBoundary() {
+        let bottomLeftCorner = pixel_to_hex(layout, Point(particleMargin, particleMargin));
+        let bottomRightCorner = pixel_to_hex(layout, Point(width - particleMargin, particleMargin));
+        let topLeftCorner = pixel_to_hex(layout, Point(particleMargin, height - particleMargin));
+        let topRightCorner = pixel_to_hex(layout, Point(width - particleMargin, height - particleMargin));
+
+        let bottomLine = hex_linedraw(bottomLeftCorner, bottomRightCorner);
+        let topLine = hex_linedraw(topLeftCorner, topRightCorner);
+        let leftLine = hex_linedraw(bottomLeftCorner, topLeftCorner);
+        let rightLine = hex_linedraw(bottomRightCorner, topRightCorner);
+
+        let lowerBoundarySize = 0.3;
+        let obstacleSize = 0.8;
+
+        let topGapLowerCorner = pixel_to_hex(layout, Point(paricleBoundaryPosition+cellSize.x, particleMargin));
+        let temp = particleMargin+(height-2*particleMargin)*lowerBoundarySize*obstacleSize;
+        let topGapHigherCorner = pixel_to_hex(layout, Point(paricleBoundaryPosition+cellSize.x, temp));
+        let topGapLine = hex_linedraw(topGapLowerCorner, topGapHigherCorner);
+
+        let bottomGapLowerCorner = pixel_to_hex(layout, Point(paricleBoundaryPosition+cellSize.x, height - particleMargin ));
+        temp = height - particleMargin - (height-particleMargin*2)*obstacleSize*(1-lowerBoundarySize); 
+        let bottomGapHigherCorner = pixel_to_hex(layout, Point(paricleBoundaryPosition+cellSize.x, temp));
+        let bottomGapLine = hex_linedraw(bottomGapLowerCorner, bottomGapHigherCorner);
+
+
+        const hexLines = [...bottomLine, ...topLine, ...leftLine, ...rightLine, ...topGapLine, ...bottomGapLine];
+
+        for (const hex of hexLines)
+        {
+            if(getBoardTile(boardTiles, hex.r, hex.q).length != 0)
+            {
+                continue;
+            }
+            getBoardTile(boardTiles, hex.r, hex.q).push(new Element(Element.s_wall, hex, Hex(0, 0, 0)));
+        }
+    }
+
+    function initElements() {
+        boardTiles = getEmptyBoardTiles();
+        initBoundary();
+        initParticle();
+    }
+
+    function initBoard() {
         initElements();
     }
 
-    function getColor(element)
-    {
+    function getColor(element) {
         let color = 'rgba(128, 128, 28, 255)';
-        switch(element.type)
-        {
+        switch (element.type) {
             case Element.s_empty:
-                color = 'rgba(255, 0, 0, 0)';
+                color = 'rgba(196, 196, 196, 255)';
                 break;
             case Element.s_particle:
-                color = 'rgba(255, 0, 0, 255)';
+                color = 'rgba(200, 50, 50, 255)';
                 break;
             case Element.s_wall:
                 color = 'rgba(0, 0, 0, 255)';
-                break;   
+                break;
         }
         return color;
     }
 
-    function drawElement(element)
-    {
+    function drawElement(element) {
         let point = hex_to_pixel(layout, element.coord);
         ctx.fillStyle = getColor(element);
-        let radius = 15; // Polowa wartości pointSize dla zachowania rozmiaru
+        let radius = Math.min(cellSize.x, cellSize.y) * 0.8;
+
         ctx.beginPath();
         ctx.arc(point.x, point.y, radius, 0, 2 * Math.PI, false);
         ctx.fill();
@@ -190,16 +224,33 @@ var layout = new Layout(orientation, cellSize, new Point(width / 2, height / 2))
 
     function drawChessboard() 
     {
-        for (const tile of boardTiles.flat(1)) 
+        for (let r = -boardSize; r <= boardSize; r++) 
         {
-            if(tile.length < 1)
+            for (let q = -boardSize; q <= boardSize; q++) 
             {
-                continue;
-            }
+                let s = -r - q;
+                let hex = new Hex(q, r, s);
 
-            tile.sort((a, b) => a.sortOrder - b.sortOrder);
-            
-            drawElement(tile[0]);
+                if (isInDrawableArea(hex) && getBoardTile(boardTiles, r, q).length == 0) 
+                {
+                    drawElement(new Element(Element.s_empty, hex, Hex(0,0,0)));
+                }
+            }
+        }
+
+        for (const row of boardTiles) 
+        {
+            for (const tile of row) 
+            {
+                if (tile.length == 0) 
+                {
+                    continue;
+                }
+
+                tile.sort((a, b) => b.sortOrder - a.sortOrder );
+
+                drawElement(tile[0]);
+            }
         }
     }
 
@@ -209,17 +260,14 @@ var layout = new Layout(orientation, cellSize, new Point(width / 2, height / 2))
         drawChessboard();
     }
 
-    function checkWall(elements)
-    {
+    function checkWall(elements) {
         const foundWall = elements.some(e => e.type == Element.s_wall);
         const foundParticle = elements.some(e => e.type == Element.s_particle);
-        if( !(foundWall && foundParticle) )
-        {
+        if (!(foundWall && foundParticle)) {
             return false;
         }
-        for (const element of elements) 
-        {
-            if(element.type != Element.s_particle)
+        for (const element of elements) {
+            if (element.type != Element.s_particle)
                 continue;
             element.speed.r = -element.speed.r;
             element.speed.q = -element.speed.q;
@@ -228,35 +276,30 @@ var layout = new Layout(orientation, cellSize, new Point(width / 2, height / 2))
         return true;
     }
 
-    function checkOneDirectionCollisions(elements)
-    {
-        if( !(elements.length == 2 && elements.every(e => e.type === Element.s_particle)))
-            return false;
-        
-        if(!hex_length_zero(elements[0].speed, elements[1].speed))
+    function checkOneDirectionCollisions(elements) {
+        if (!(elements.length == 2 && elements.every(e => e.type === Element.s_particle)))
             return false;
 
-        if(getRandomInt(2) % 2)
-        {
+        if (!hex_length_zero(elements[0].speed, elements[1].speed))
+            return false;
+
+        if (getRandomInt(2) % 2) {
             elements[0].speed = hex_rotate_left(elements[0].speed);
             elements[1].speed = hex_rotate_left(elements[1].speed);
         }
-        else
-        {
+        else {
             elements[0].speed = hex_rotate_right(elements[0].speed);
             elements[1].speed = hex_rotate_right(elements[1].speed);
         }
         return true;
     }
 
-    function checkThreeParticleInCollisions(elements)
-    {
+    function checkThreeParticleInCollisions(elements) {
 
-        if( !(elements.length == 3 && elements.every(e => e.type === Element.s_particle)))
+        if (!(elements.length == 3 && elements.every(e => e.type === Element.s_particle)))
             return false;
 
-        if( hex_length_zero(hex_add(elements[0].speed, elements[1].speed), elements[2].speed) )
-        {
+        if (hex_length_zero(hex_add(elements[0].speed, elements[1].speed), elements[2].speed)) {
             elements[0].speed = hex_scale(elements[0].speed, -1);
             elements[1].speed = hex_scale(elements[1].speed, -1);
             elements[2].speed = hex_scale(elements[2].speed, -1);
@@ -265,46 +308,40 @@ var layout = new Layout(orientation, cellSize, new Point(width / 2, height / 2))
         return false;
     }
 
-    function checkThreeParticleNonSymetricCollisions(elements)
-    {
+    function checkThreeParticleNonSymetricCollisions(elements) {
 
-        if( !(elements.length == 3 && elements.every(e => e.type === Element.s_particle)))
+        if (!(elements.length == 3 && elements.every(e => e.type === Element.s_particle)))
             return false;
 
-        if( hex_length_zero(hex_add(elements[0].speed, elements[1].speed), elements[2].speed) )
+        if (hex_length_zero(hex_add(elements[0].speed, elements[1].speed), elements[2].speed))
             return false;
 
         let symetricElem1, symetricElem2;
         let nonSymetricElem;
 
-        if(hex_length_zero(elements[0].speed, elements[1].speed))
-        {
+        if (hex_length_zero(elements[0].speed, elements[1].speed)) {
             symetricElem1 = structuredClone(elements[0]);
-            symetricElem2 = structuredClone(elements[1]);    
-            nonSymetricElem = structuredClone(elements[2]);    
+            symetricElem2 = structuredClone(elements[1]);
+            nonSymetricElem = structuredClone(elements[2]);
         }
-        else if(hex_length_zero(elements[0].speed, elements[2].speed))
-        {
+        else if (hex_length_zero(elements[0].speed, elements[2].speed)) {
             symetricElem1 = structuredClone(elements[0]);
-            symetricElem2 = structuredClone(elements[2]);    
-            nonSymetricElem = structuredClone(elements[1]);    
+            symetricElem2 = structuredClone(elements[2]);
+            nonSymetricElem = structuredClone(elements[1]);
         }
-        else
-        {
+        else {
             symetricElem1 = structuredClone(elements[1]);
-            symetricElem2 = structuredClone(elements[2]);    
-            nonSymetricElem = structuredClone(elements[0]);    
+            symetricElem2 = structuredClone(elements[2]);
+            nonSymetricElem = structuredClone(elements[0]);
         }
 
-        
-        if(hex_length_zero(symetricElem1.speed, hex_rotate_left(nonSymetricElem.speed)) || 
-            hex_length_zero(symetricElem2.speed, hex_rotate_left(nonSymetricElem.speed) ))
-        {
+
+        if (hex_length_zero(symetricElem1.speed, hex_rotate_left(nonSymetricElem.speed)) ||
+            hex_length_zero(symetricElem2.speed, hex_rotate_left(nonSymetricElem.speed))) {
             symetricElem1.speed = hex_rotate_left(symetricElem1.speed);
             symetricElem2.speed = hex_rotate_left(symetricElem2.speed);
         }
-        else
-        {
+        else {
             symetricElem1.speed = hex_rotate_right(symetricElem1.speed);
             symetricElem2.speed = hex_rotate_right(symetricElem2.speed);
         }
@@ -316,26 +353,23 @@ var layout = new Layout(orientation, cellSize, new Point(width / 2, height / 2))
         return true;
     }
 
-    function calculateCollisions()
-    {
-        for(let tile of boardTiles.flat(1))
-        {
-            if(checkWall(tile))
+    function calculateCollisions() {
+        for (let tile of boardTiles.flat(1)) 
+        {   
+            if (checkWall(tile))
                 continue;
-            if(checkOneDirectionCollisions(tile))
+            if (checkOneDirectionCollisions(tile))
                 continue;
-            if(checkThreeParticleInCollisions(tile))
+            if (checkThreeParticleInCollisions(tile))
                 continue;
-            if(checkThreeParticleNonSymetricCollisions(tile))
+            if (checkThreeParticleNonSymetricCollisions(tile))
                 continue;
         }
     }
 
-    function moveParticles()
-    {
+    function moveParticles() {
         let newBoardTiles = getEmptyBoardTiles();
-        for (const element of boardTiles.flat(2)) 
-        {
+        for (const element of boardTiles.flat(2)) {
             element.coord.r += element.speed.r;
             element.coord.q += element.speed.q;
             element.coord.s += element.speed.s;
@@ -345,22 +379,71 @@ var layout = new Layout(orientation, cellSize, new Point(width / 2, height / 2))
     }
 
 
-    function animateChessboard() 
-    {
+    function animateChessboard() {
         let currentTime = Date.now();
-        if (currentTime - lastFrameTime > timeToNextFrame) 
-        {
+        if (currentTime - lastFrameTime > timeToNextFrame) {
             console.log("Move");
             moveParticles();
             calculateCollisions();
             draw();
             lastFrameTime = currentTime;
         }
-        
+
 
         requestAnimationFrame(animateChessboard);
     }
-    
     initBoard();
     animateChessboard();
+
+
+
+    function handleTimerSliderChange(event) {
+        const slider = event.target;
+        const value = slider.value;
+        console.log(`Timer slider changed to: ${value}`);
+    }
+    
+    function handlePrzegrodaSliderChange(event) {
+        const slider = event.target;
+        const value = slider.value;
+        console.log(`Przegroda slider changed to: ${value}`);
+    }
+    
+    function handleWielkoscSliderChange(event) {
+        const slider = event.target;
+        const value = slider.value;
+        console.log(`Wielkość slider changed to: ${value}`);
+    }
+    
+    function handleDensitySliderChange(event) {
+        const slider = event.target;
+        const value = slider.value;
+        console.log(`Density slider changed to: ${value}`);
+    }
+    
+    function handleIleNaLewejSliderChange(event) {
+        const slider = event.target;
+        const value = slider.value;
+        console.log(`Ile na lewej slider changed to: ${value}`);
+    }
+    
+    function handleIleNaPrawejSliderChange(event) {
+        const slider = event.target;
+        const value = slider.value;
+        console.log(`Ile na prawej slider changed to: ${value}`);
+    }
+    
+    const timerSlider = document.getElementById('timerSlider');
+    const przegrodaSlider = document.getElementById('przegrodaSlider');
+    const wielkoscSlider = document.getElementById('wielkoscSlider');
+    const densitySlider = document.getElementById('densitySlider');
+    const ileNaLewejSlider = document.getElementById('ileNaLewejSlider');
+    const ileNaPrawejSlider = document.getElementById('ileNaPrawejSlider');
+    
+    timerSlider.addEventListener('input', handleTimerSliderChange);
+    przegrodaSlider.addEventListener('input', handlePrzegrodaSliderChange);
+    wielkoscSlider.addEventListener('input', handleWielkoscSliderChange);
+    densitySlider.addEventListener('input', handleDensitySliderChange);
+    ileNaLewejSlider.addEventListener('input', handleIleNaLewejSliderChange);
+    ileNaPrawejSlider.addEventListener('input', handleIleNaPrawejSliderChange);    
 });

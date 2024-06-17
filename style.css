@@ -1,68 +1,58 @@
 html, body {
-    width: 100%;
     height: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden; /* Dodajemy overflow: hidden, aby zapobiec pojawianiu się pasków przewijania */
-}
-
-body {
+    overflow: hidden; /* Zapobiega pojawianiu się pasków przewijania */
     font-family: Arial, sans-serif;
     background-color: #f0f0f0;
-    padding: 0;
-    text-align: center;
 }
 
-#container {
-    width: 80%;
-    margin: 20px auto;
-    overflow: hidden;
+.container {
+    display: flex;
+    height: 100%;
 }
 
-#automatonNumberLabel {
-    display: block;
+#chessboardCanvas {
+    margin: 1%;
+    width: 800px;
+    height: 800px;
+    border: 1px solid black;
 }
 
-#automatonNumber {
-    padding: 5px;
+.controls {
+    flex: 1;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+}
+
+.control-label {
+    width: 200px;
     font-size: 16px;
 }
 
+.slider-input {
+    flex: 1;
+    width: 200px; /* Zmniejszenie szerokości sliderów */
+}
+
 button {
-    padding: 5px;
+    padding: 10px;
     font-size: 16px;
     background-color: #4CAF50;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    margin-right: 10px;
 }
 
 button:hover {
     background-color: #45a049;
-}
-
-canvas {
-    display: block;
-    margin: 0 auto; /* Usuwamy górny margines, aby canvas był bliżej górnej krawędzi */
-    max-width: 100%;
-    max-height: calc(100vh - 150px); /* Ograniczamy maksymalną wysokość canvasa, uwzględniając wysokość innych elementów na stronie */
-}
-
-.customInput {
-    width: 60px;
-    border: 1px solid #ccc;
-    padding: 5px;
-    margin-right: 10px;
-    font-size: 8px;
-    line-height: 0.8;
-}
-
-.customInputDescription {
-    font-size: 8px;
-}
-
-.inputRow {
-    line-height: 0.8;
 }
