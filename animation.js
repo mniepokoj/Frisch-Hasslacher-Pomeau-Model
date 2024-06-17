@@ -8,13 +8,13 @@ canvas.height = window.innerHeight;
 var width = canvas.width;
 var height = canvas.height;
 
-var boardSize = 10;
+var boardSize = 50;
 var cellSize = new Point(width / (boardSize * 2), height / (boardSize * 2));
-var particleMargin = 100;
+var particleMargin = 200;
 var particleDensityFactor = 0.;
 
-var timeToNextFrame = 200;
-var lastFrameTime = Date.now();
+var timeToNextFrame = 2000;
+var lastFrameTime = Date.now() - timeToNextFrame;
 
 var boardTiles = [];
 
@@ -150,8 +150,9 @@ var layout = new Layout(orientation, cellSize, new Point(width / 2, height / 2))
                 }
             }
         }
-        getBoardTile(boardTiles, 2, 0).push(new Element(Element.s_particle, Hex(2,0, -2), Hex(1,0, -1)));
-        getBoardTile(boardTiles, 0, 0).push(new Element(Element.s_particle, Hex(0,0, 0), Hex(1,0, -1)));
+        getBoardTile(boardTiles, 2, 0).push(new Element(Element.s_particle, Hex(3,0 ,-3), Hex(-1,0, 1)));
+        getBoardTile(boardTiles, 0, 0).push(new Element(Element.s_particle, Hex(-3,0, 3), Hex(1,0, -1)));
+        getBoardTile(boardTiles, 0, 3).push(new Element(Element.s_particle, Hex(0,3, -3), Hex(0,-1, 1)));
     }
 
     function initBoard() 
@@ -181,8 +182,10 @@ var layout = new Layout(orientation, cellSize, new Point(width / 2, height / 2))
     {
         let point = hex_to_pixel(layout, element.coord);
         ctx.fillStyle = getColor(element);
-        let pointSize = 30;
-        ctx.fillRect(point.x - pointSize / 2, point.y - pointSize / 2, pointSize, pointSize);
+        let radius = 15; // Polowa wartości pointSize dla zachowania rozmiaru
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, radius, 0, 2 * Math.PI, false);
+        ctx.fill();
     }
 
     function drawChessboard() 
@@ -274,38 +277,46 @@ var layout = new Layout(orientation, cellSize, new Point(width / 2, height / 2))
         let symetricElem1, symetricElem2;
         let nonSymetricElem;
 
-        console.log(elements);
         if(hex_length_zero(elements[0].speed, elements[1].speed))
         {
-            symetricElem1 = elements[0];
-            symetricElem2 = elements[1];    
-            nonSymetricElem = elements[2];    
+            symetricElem1 = structuredClone(elements[0]);
+            symetricElem2 = structuredClone(elements[1]);    
+            nonSymetricElem = structuredClone(elements[2]);    
+        }
+        else if(hex_length_zero(elements[0].speed, elements[2].speed))
+        {
+            symetricElem1 = structuredClone(elements[0]);
+            symetricElem2 = structuredClone(elements[2]);    
+            nonSymetricElem = structuredClone(elements[1]);    
         }
         else
         {
-            symetricElem1 = elements[0];
-            symetricElem2 = elements[2];    
-            nonSymetricElem = elements[1];    
+            symetricElem1 = structuredClone(elements[1]);
+            symetricElem2 = structuredClone(elements[2]);    
+            nonSymetricElem = structuredClone(elements[0]);    
         }
 
-        if(hex_length_zero(hex_rotate_left(symetricElem1.speed), nonSymetricElem.speed) 
-            || hex_length_zero(hex_rotate_left(symetricElem2.speed), nonSymetricElem.speed) )
+        
+        if(hex_length_zero(symetricElem1.speed, hex_rotate_left(nonSymetricElem.speed)) || 
+            hex_length_zero(symetricElem2.speed, hex_rotate_left(nonSymetricElem.speed) ))
+        {
+            symetricElem1.speed = hex_rotate_left(symetricElem1.speed);
+            symetricElem2.speed = hex_rotate_left(symetricElem2.speed);
+        }
+        else
         {
             symetricElem1.speed = hex_rotate_right(symetricElem1.speed);
             symetricElem2.speed = hex_rotate_right(symetricElem2.speed);
         }
-        else
-        {
-            symetricElem1.speed = hex_rotate_right(symetricElem1.speed);
-            symetricElem2.speed = hex_rotate_right(symetricElem2.speed);
-        }
 
-        console.log(elements);
+        elements[0].speed = symetricElem1.speed;
+        elements[1].speed = symetricElem2.speed;
+        elements[2].speed = nonSymetricElem.speed;
 
         return true;
     }
 
-    function calculateCollisions(elemets)
+    function calculateCollisions()
     {
         for(let tile of boardTiles.flat(1))
         {
@@ -342,10 +353,10 @@ var layout = new Layout(orientation, cellSize, new Point(width / 2, height / 2))
             console.log("Move");
             moveParticles();
             calculateCollisions();
+            draw();
             lastFrameTime = currentTime;
         }
         
-        draw();
 
         requestAnimationFrame(animateChessboard);
     }
