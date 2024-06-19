@@ -2,7 +2,7 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden; /* Zapobiega pojawianiu się pasków przewijania */
+    overflow: hidden;
     font-family: Arial, sans-serif;
     background-color: #f0f0f0;
 }
@@ -14,8 +14,8 @@ html, body {
 
 #chessboardCanvas {
     margin: 1%;
-    width: 800px;
-    height: 800px;
+    width: 700px;
+    height: 700px;
     border: 1px solid black;
 }
 
@@ -26,6 +26,7 @@ html, body {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    overflow-y: auto;
 }
 
 .control-group {
@@ -35,12 +36,29 @@ html, body {
 
 .control-label {
     width: 200px;
-    font-size: 16px;
+    font-size: 14px;
 }
 
 .slider-input {
     flex: 1;
-    width: 200px; /* Zmniejszenie szerokości sliderów */
+    width: 200px;
+}
+
+.slider-value {
+    margin-left: 20px;
+    width: 60px;
+    text-align: right;
+}
+
+.chart-container {
+    margin-top: 20px;
+    height: 400px;
+    width: 600px;
+}
+
+#chartCanvas {
+    width: 100%;
+    height: 100%;
 }
 
 button {
@@ -55,4 +73,14 @@ button {
 
 button:hover {
     background-color: #45a049;
+}
+
+button:disabled {
+    background-color: #cccccc;
+    color: #666666;
+    cursor: not-allowed;
+}
+
+button:disabled:hover {
+    background-color: #cccccc;
 }

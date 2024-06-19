@@ -8,18 +8,20 @@ document.addEventListener('DOMContentLoaded', function () {
     var height = canvas.height;
 
     var particleMargin = height * 0.1;
-    var boardSize = 50;
+    var boardSize = 80;
     var cellSize = new Point((width - particleMargin) / (boardSize), (height - particleMargin) / (boardSize));
     var paricleBoundaryPosition = (width - particleMargin * 2) * 0.7 + particleMargin - cellSize.x;
     var particleDensityFactor = 0.2;
+    let obstacleSize = 0.7;
 
-    var timeToNextFrame = 100;
+    var timeToNextFrame = 1000;
     var lastFrameTime = Date.now() - timeToNextFrame;
 
     var boardTiles = [];
 
     var orientation = layout_flat;
     var layout = new Layout(orientation, cellSize, new Point(0, 0));
+    var isPause = true;
 
     class Element {
         static s_empty = "empty";
@@ -161,7 +163,6 @@ document.addEventListener('DOMContentLoaded', function () {
         let rightLine = hex_linedraw(bottomRightCorner, topRightCorner);
 
         let lowerBoundarySize = 0.3;
-        let obstacleSize = 0.8;
 
         let topGapLowerCorner = pixel_to_hex(layout, Point(paricleBoundaryPosition+cellSize.x, particleMargin));
         let temp = particleMargin+(height-2*particleMargin)*lowerBoundarySize*obstacleSize;
@@ -192,7 +193,9 @@ document.addEventListener('DOMContentLoaded', function () {
         initParticle();
     }
 
-    function initBoard() {
+    function initBoard() 
+    {
+        resetChart();
         initElements();
     }
 
@@ -367,6 +370,37 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function onLeftSide()
+    {
+        let particleCount = 0.;
+        let particleOnLeft = 0.;
+        for(let element of boardTiles.flat(2))
+        {
+            if(element.type == Element.s_particle)
+            {
+                particleCount += 1.;
+                if(hex_to_pixel(layout, element.coord).x <= paricleBoundaryPosition)
+                {
+                    particleOnLeft+= 1.;
+                }
+            }
+        }
+        if(particleOnLeft < 1 && particleCount < 1)
+        {
+            return 0.5;
+        }
+        console.log(particleCount);
+        return particleOnLeft/particleCount; 
+    }
+
+    function updateSliders() {
+        const leftValue = (onLeftSide() * 100).toFixed(1);
+        const rightValue = ((1 - onLeftSide()) * 100).toFixed(1);
+        ileNaLewejValue.textContent = leftValue;
+        ileNaPrawejValue.textContent = rightValue;
+        updateChart(parseFloat(rightValue));
+    }
+
     function moveParticles() {
         let newBoardTiles = getEmptyBoardTiles();
         for (const element of boardTiles.flat(2)) {
@@ -376,12 +410,14 @@ document.addEventListener('DOMContentLoaded', function () {
             getBoardTile(newBoardTiles, element.coord.r, element.coord.q).push(element);
         }
         boardTiles = newBoardTiles;
+        updateSliders();
     }
 
-
-    function animateChessboard() {
+    function animateChessboard() 
+    {
         let currentTime = Date.now();
-        if (currentTime - lastFrameTime > timeToNextFrame) {
+        if (currentTime - lastFrameTime > timeToNextFrame && !isPause) 
+            {
             console.log("Move");
             moveParticles();
             calculateCollisions();
@@ -392,58 +428,118 @@ document.addEventListener('DOMContentLoaded', function () {
 
         requestAnimationFrame(animateChessboard);
     }
-    initBoard();
-    animateChessboard();
 
+    function linearToLog(value, minLinear, maxLinear, minLog, maxLog) {
+        const logMin = Math.log(minLog);
+        const logMax = Math.log(maxLog);
+        const scale = (logMax - logMin) / (maxLinear - minLinear);
+        return Math.exp(logMin + scale * (value - minLinear));
+    }
 
+    function handleStartClick() {
+        isPause = false;
+        updateButtons();
+    }
+
+    function handlePauseClick() {
+        isPause = true;
+        updateButtons();
+    }
+
+    function handleSingleMoveClick() {
+        moveParticles();
+        calculateCollisions();
+        draw();
+    }
+
+    function handleRestartClick() {
+        initBoard();
+        draw();
+        updateSliders();
+    }
 
     function handleTimerSliderChange(event) {
         const slider = event.target;
-        const value = slider.value;
-        console.log(`Timer slider changed to: ${value}`);
+        const value = parseFloat(slider.value);
+        const logValue = linearToLog(value, 0.01, 1, 0.01, 1);
+        timeToNextFrame = logValue * 1000;
+        updateSliderValue(slider, timerValue);
     }
-    
+
     function handlePrzegrodaSliderChange(event) {
+        const przegrodaMin = 0.1;
+        const przegrodaMax = 0.9;
+
         const slider = event.target;
         const value = slider.value;
-        console.log(`Przegroda slider changed to: ${value}`);
+        const factor = (przegrodaMax - przegrodaMin) * value + przegrodaMin;
+
+        paricleBoundaryPosition = (width - particleMargin * 2) * factor + particleMargin - cellSize.x;
+        initBoard();
+        draw();
+        updateSliderValue(slider, przegrodaValue);
     }
-    
+
     function handleWielkoscSliderChange(event) {
         const slider = event.target;
         const value = slider.value;
-        console.log(`Wielkość slider changed to: ${value}`);
+        obstacleSize = value * 1.01;
+        initBoard();
+        draw();
+        updateSliders();
+        updateSliderValue(slider, wielkoscValue);
     }
-    
+
     function handleDensitySliderChange(event) {
         const slider = event.target;
         const value = slider.value;
-        console.log(`Density slider changed to: ${value}`);
+        particleDensityFactor = value;
+        initBoard();
+        draw();
+        updateSliderValue(slider, densityValue);
     }
-    
-    function handleIleNaLewejSliderChange(event) {
-        const slider = event.target;
-        const value = slider.value;
-        console.log(`Ile na lewej slider changed to: ${value}`);
+
+    function updateSliderValue(slider, valueElement) {
+        valueElement.textContent = parseFloat(slider.value).toFixed(3);
     }
-    
-    function handleIleNaPrawejSliderChange(event) {
-        const slider = event.target;
-        const value = slider.value;
-        console.log(`Ile na prawej slider changed to: ${value}`);
-    }
-    
+
+    const startButton = document.getElementById('startButton');
+    const pauseButton = document.getElementById('pauseButton');
+    const restartButton = document.getElementById('restartButton');
+    const singleMoveButton = document.getElementById('singleMoveButton');
     const timerSlider = document.getElementById('timerSlider');
     const przegrodaSlider = document.getElementById('przegrodaSlider');
     const wielkoscSlider = document.getElementById('wielkoscSlider');
     const densitySlider = document.getElementById('densitySlider');
-    const ileNaLewejSlider = document.getElementById('ileNaLewejSlider');
-    const ileNaPrawejSlider = document.getElementById('ileNaPrawejSlider');
-    
+    const timerValue = document.getElementById('timerValue');
+    const przegrodaValue = document.getElementById('przegrodaValue');
+    const wielkoscValue = document.getElementById('wielkoscValue');
+    const densityValue = document.getElementById('densityValue');
+
+    startButton.addEventListener('click', handleStartClick);
+    pauseButton.addEventListener('click', handlePauseClick);
+    restartButton.addEventListener('click', handleRestartClick);
+    singleMoveButton.addEventListener('click', handleSingleMoveClick);
     timerSlider.addEventListener('input', handleTimerSliderChange);
     przegrodaSlider.addEventListener('input', handlePrzegrodaSliderChange);
     wielkoscSlider.addEventListener('input', handleWielkoscSliderChange);
     densitySlider.addEventListener('input', handleDensitySliderChange);
-    ileNaLewejSlider.addEventListener('input', handleIleNaLewejSliderChange);
-    ileNaPrawejSlider.addEventListener('input', handleIleNaPrawejSliderChange);    
+
+    updateSliderValue(timerSlider, timerValue);
+    updateSliderValue(przegrodaSlider, przegrodaValue);
+    updateSliderValue(wielkoscSlider, wielkoscValue);
+    updateSliderValue(densitySlider, densityValue);   
+
+    function updateButtons()
+    {
+        pauseButton.disabled = isPause;;
+        startButton.disabled = !isPause;
+        singleMoveButton.disabled = !isPause;
+    }
+
+    updateButtons();
+    initBoard();
+    draw();
+    updateSliders();
+    animateChessboard();
 });
